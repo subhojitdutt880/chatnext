@@ -4,8 +4,11 @@ import MoreVertIcon from '@material-ui/icons/MoreVert';
 import ChatIcon from '@material-ui/icons/Chat';
 import SearchIcon from '@material-ui/icons/Search';
 import * as EmailValidator from 'email-validator';
+import { useAuthState } from "react-firebase-hooks/auth";
+import { auth, db } from "../firebase";
 
 function Sidebar() {
+    const [user] = useAuthState(auth);
 
 const createChats = () => {
     const input = prompt("Enter the email address of the user to start chatting");
@@ -14,15 +17,19 @@ const createChats = () => {
 if (!input) return null;
 
 if (EmailValidator.validate(input)){
-
-}
-
+    db.collection("chats").add({
+        users: [user.email, input],
+    })
+    }
 };
 
+const chatAlreadyExists = (recipientEmail) => {
+    !!chatsSnapshot?.docs.find(chat => chat.data().users.find(user === recipientEmail)?.length > 0)
+}
     return (
         <Container>
             <Header>
-                <UserAvatar></UserAvatar>
+                <UserAvatar onClick={() => auth.signOut()}></UserAvatar>
                 <IconsContainer>
                     <IconButton>
                         <ChatIcon></ChatIcon>
@@ -36,7 +43,7 @@ if (EmailValidator.validate(input)){
                 <SearchIcon></SearchIcon>
                 <SearchInput placeholder="Search chats"></SearchInput>
             </Search>
-            <SidebarButton onClick={createChats}>Start a New Chat</SidebarButton>
+            <SidebarButton variant = "outlined" onClick={createChats}>Start a New Chat</SidebarButton>
         </Container>
     );
 }
@@ -62,6 +69,7 @@ const SearchInput = styled.input`
 outline-width: 0;
 border: none;
 flex: 1;
+opacity: 0.6;
 `;
 
 const Header = styled.div`
